@@ -99,27 +99,97 @@ En vista de ello se pasa a realizar un modelo de predicción  con base a la estr
 
 # ╔═╡ 4bb9e9d5-a185-4b12-a048-8ba0aada55d2
 md"
-# Age Structure Model
+# Age Structure Matrix Model
 
+## Descripción
 
+Este modelo representa una mejora de los modelos discretos y continuos que contemplan 'la ley de crecimiento geométrico y exponencial'. El modelo 'age structure matrix models' toma en cuenta la estructura de edad la población y el tamaño que estas poseen, lo anterior para diferenciar entre los distintos individuos y su aporte al crecimiento poblacional. De esta manera, se pueden considerar algunos elementos claves que en modelos anteriores no era posible.
+
+Aunque se presenta un modelo simple, este puede ser modificado para agregar características de la población y llevarlo a un escenario más realista, por ejemplo añadir una diferencia entre las poblaciones de hembra y macho (varón y mujer en caso de las poblaciones humanas).
+"
+
+# ╔═╡ 46f0a2a9-54d4-4ab2-b5ee-61408364bc34
+md"
+![Imagen del modelo de estrutras de edad](img1.png)
+"
+
+# ╔═╡ 5f7dd4d1-f323-4168-b9be-d46db070a4bf
+md"
+De la imagen se parecia que la población en general se divide por clases, en el ejemplo de la clase $1$ hasta la clase $N$. En algún momento se deberán conocer el total de individuos pertenecientes a cada clase de la población. 
+
+Cada una de las clases juega un rol para el crecimiento de la población y se les asocia diferentes parámetros relacionados con la fecundidad ($F_i$) y la probabilidad de supervivencia ($P_i$) para pasar a la siguiente clase. Siendo la fecundidad y la probabilidad de supervivencia datos estadísticos estudiados después de realizar un censo a la población.
+
+Dependiendo de la población que se esté estudiando, la última clase puede asociarse o no la fecundidad y por ser la última clase se espera que la probabilidad de suprvivencia sea $0$.
+
+Para realizar predicciones con este modelo en general se realizan las siguientes operaciones:
+
+$$TP_1(t+1) = F_1 TP_1(t) + F_2 TP_2(t) + F_3 TP_3(t) + ... + F_{N-1} TP_{n-1}(t) + F_N TP_N(t)$$
+
+$$TP_1(t+1) = F_1 TP_1(t) + F_2 TP_2(t) + F_3 TP_3(t) + ... + F_{N-1} TP_{n-1}(t) + F_N TP_N(t)$$
+
+$$TP_2(t+1) = P_1 TP_1(t)$$
+
+$$TP_3(t+1) = P_2 TP_2(t)$$
+
+$$...$$
+
+$$TP_{N-1}(t+1) = P_{N-2} TP_{N-2}(t)$$
+
+$$TP_{N}(t+1) = P_{N-1} TP_{N-1}(t)$$
+
+En esencia lo que se hace es calcular para tiempo $t+1$ el total de la población ($TP$) por cada clase con base al dato del tamaño de la clase en el tiempo $t$. 
+
+En general las operaciones anteriores pueden ser resumidas realizando operaciones vectoriales. Para ello se forma la denominada Matriz de Leslie ($ML$), el cual tiene la siguiente forma:
+
+$\left[\begin{array}{ccc}
+F_1 & F_2 & F_3 & ... & F_{N-1} & F_N\\
+P_1 & 0 & 0     &  & 0 & 0\\
+0 & P_2 & 0     &  & 0 & 0\\
+0 & 0 & P_3     &  & 0 & 0\\
+0 & 0 & 0       & ... & 0  & 0\\
+0 & 0 & 0       &  & P_{N-1} & 0 \\
+\end{array}\right]$
+
+Sabiendo los datos de las poblaciones iniciales para cada una de las clase se forma el vector: 
+
+$$TP(0) = [TP_1(0), TP_2(0), TP_3(0), ..., TP_{N-1}(0), TP_N(0)]$$
+
+De esta manera, se predicen las poblaciones por clase en cada unidad de tiempo mediante: 
+
+$$TP(1) = ML * TP(0)$$
+
+Finalmente se puede escribir:
+
+$$TP(t+1) = ML * TP(t)$$
+
+Predecir el número de individuos ($TP(t)$) permite en calcular el parámetro $\lambda$ que corresponde a la taza de cambio de la población total.
+"
+
+# ╔═╡ d2a83df0-feb1-481e-966d-54c937b2f4db
+md"
+---
+
+## Simulación Age Structure Model
 "
 
 # ╔═╡ 7f2111c3-1c9c-4b49-803e-96ba47714518
 clases = ["1" "2" "3" "4" "Población total"];
 
 # ╔═╡ e6443342-e2be-41df-a541-1ac22073cbef
-Fᵢ = [0.9, 0.8, 0.9, 0.4];
+Fᵢ = [0.1, 1, 1.5, 1.2];
 
 # ╔═╡ 40cb285c-83e3-45d3-bf02-d02839bc9d4f
-Probᵢ = [0.8, 0.9, 0.95, 0.9];
+Probᵢ = [0.8, 0.5, 0.25];
 
 # ╔═╡ f0e95ee1-217d-4c00-b3ac-2f0080b2c0e3
-Pob₀ = [20; 25; 30; 23];
+Pob₀ = [45, 18, 11, 4];
 
 # ╔═╡ b44bae56-8410-4f0d-ba6d-8661a420dd15
 md"""
-Años de predicción $(@bind years NumberField(0:1:100))
+Años de predicción $(@bind years NumberField(1:1:100))
 """
+#Escala Logaritmica $(@bind scalelog CheckBox())
+#"""
 
 # ╔═╡ d51f23a4-fe65-46a9-9328-6df7c411d43b
 md"
@@ -167,7 +237,7 @@ function makematrixleslie(probsurvival, fecundity)
 		if i == 1 || (i-1)%n == 0
 			lesliematrix[i] = fecundity[count₁]
 			count₁ +=1
-		elseif i == 2 || (i-8*(count₂-1))==2
+		elseif i == 2 || (i-(n+1)*(count₂-1))==2
 			lesliematrix[i] = probsurvival[count₂]
 			count₂ +=1
 		end
@@ -180,20 +250,22 @@ begin
 	lesliematrix = makematrixleslie(Probᵢ, Fᵢ);
 	Pob = copy(Pob₀')
 	Pobₜ = []
-	for i in 1:years
-		if i == 1 
-			global temp = lesliematrix*Pob₀
-		elseif i != 1
-			global temp = lesliematrix*temp 
-		end
-		push!(Pobₜ, sum(temp))
-		global Pob = vcat(Pob,temp')
-	end 
-	pushfirst!(Pobₜ, sum(Pob₀))
+	if years != 0
+		for i in 1:years
+			if i == 1 
+				global temp = lesliematrix*Pob₀
+			elseif i != 1
+				global temp = lesliematrix*temp 
+			end
+			push!(Pobₜ, sum(temp))
+			global Pob = vcat(Pob,temp')
+		end 
+		pushfirst!(Pobₜ, sum(Pob₀))
+	end
 end;
 
 # ╔═╡ 1a2f142c-9a56-40f0-bddb-d9a85faeb696
-plot( [Pob, Pobₜ], label = clases, ylabel = "Población", xlabel = "Tiempo (años)", title = "Proyecciónes")
+plot( [Pob, Pobₜ], label = clases, ylabel = "Población", xlabel = "Tiempo (años)", title = "Proyecciónes", legend = :outertopright)
 
 # ╔═╡ Cell order:
 # ╟─ba09b7e0-48e7-4423-9bd3-00a2b4dc8905
@@ -205,6 +277,9 @@ plot( [Pob, Pobₜ], label = clases, ylabel = "Población", xlabel = "Tiempo (a�
 # ╟─a6e5acf0-50be-4e13-8e58-3b504f774207
 # ╟─6b5724fd-6195-4b1b-adcf-f6f36fa928c9
 # ╟─4bb9e9d5-a185-4b12-a048-8ba0aada55d2
+# ╟─46f0a2a9-54d4-4ab2-b5ee-61408364bc34
+# ╟─5f7dd4d1-f323-4168-b9be-d46db070a4bf
+# ╟─d2a83df0-feb1-481e-966d-54c937b2f4db
 # ╠═7f2111c3-1c9c-4b49-803e-96ba47714518
 # ╠═e6443342-e2be-41df-a541-1ac22073cbef
 # ╠═40cb285c-83e3-45d3-bf02-d02839bc9d4f
