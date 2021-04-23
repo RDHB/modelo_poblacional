@@ -1,5 +1,5 @@
 # PROYECTO: Modelo de Población ...
-[![Binder]]( https://mybinder.org/v2/gh/fonsp/pluto-on-binder/master?urlpath=pluto/open?url=https%3A%2F%2Fgithub.com%2FRDHB%2Fmodelo_poblacional.git)
+[![Binder]( https://mybinder.org/v2/gh/fonsp/pluto-on-binder/master?urlpath=pluto/open?url=https%3A%2F%2Fgithub.com%2FRDHB%2Fmodelo_poblacional.git)
 
 ## Descripción
 Para el estudio de las poblaciones es necesario diseñar modelos matemáticos que permitan sintetizar las características y factores que influyen en el crecimiento de la población, los modelos son las herramientas que permiten representar una población y predecir su dinámica.
