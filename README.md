@@ -1,5 +1,4 @@
-# PROYECTO: Modelo de Población ...
-[![Binder]( https://mybinder.org/v2/gh/fonsp/pluto-on-binder/master?urlpath=pluto/open?url=https%3A%2F%2Fgithub.com%2FRDHB%2Fmodelo_poblacional%2Fblob%2Fce8b0e1030a84dc83fe06c1fc6282a7011ad890a%2Fejercicio_1.jl)
+# PROYECTO: Modelo de Población 
 
 ## Descripción
 Para el estudio de las poblaciones es necesario diseñar modelos matemáticos que permitan sintetizar las características y factores que influyen en el crecimiento de la población, los modelos son las herramientas que permiten representar una población y predecir su dinámica.
@@ -18,4 +17,3 @@ De esta manera se realizan ciertas simulaciones, donde el usuario tiene libertad
 "using Pkg; Pkg.add("Pluto"); using Pluto; Pluto.run()"
 + En Pluto buscar el cuaderno "ejercicio_1.jl", posterioremente usar los simuladores.
 
-También puede usar Binder dando click al enlace que se encuentra en la parte superior de este documento (aún en implementación)
